@@ -6,8 +6,8 @@ This repository hosts a C++ implementation of the state-of-the-art YOLOv11 objec
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/AlessandroSaviolo/yolov11-trt
-cd yolov11-trt
+git clone https://github.com/AlessandroSaviolo/yolov11_trt
+cd yolov11_trt
 ```
 
 ### 2. Install Dependencies
@@ -28,14 +28,14 @@ cd yolov11-trt
 2. Run the Python script to export the YOLOv11 model to ONNX format:
 
 ```bash
-cd ~/yolov11-trt
+cd ~/yolov11_trt
 python scripts/export_onnx.py
 ```
 
 ### 4. Build the C++ Code
 
 ```bash
-cd ~/yolov11-trt
+cd ~/yolov11_trt
 mkdir build && cd build
 cmake ..
 cmake --build . --config Release
@@ -45,7 +45,7 @@ cmake --build . --config Release
 
 Move the generated `yolo11s.onnx` file into the `checkpoints` folder:
 ```bash
-cd ~/yolov11-trt
+cd ~/yolov11_trt
 mkdir checkpoints
 mv yolo11s.onnx checkpoints
 ```
@@ -53,8 +53,8 @@ mv yolo11s.onnx checkpoints
 Convert the ONNX model to a TensorRT engine:
 
 ```bash
-cd ~/yolov11-trt/build
-./yolov11-trt ../checkpoints/yolo11s.onnx ../assets/people.jpg
+cd ~/yolov11_trt/build
+./yolov11_exec ../checkpoints/yolo11s.onnx ../assets/people.jpg
 ```
 
 ### 6. Running Inference
@@ -62,7 +62,7 @@ cd ~/yolov11-trt/build
 Perform object detection on a sample image:
 
 ```bash
-./yolov11-trt ../checkpoints/yolo11s.engine ../assets/people.jpg
+./yolov11_exec ../checkpoints/yolo11s.engine ../assets/people.jpg
 ```
 
 ## Acknowledgement
