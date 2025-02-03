@@ -1,7 +1,7 @@
 ﻿cmake_minimum_required(VERSION 3.18)
 
 # Project declaration with C++ and CUDA support
-project(yolov11-trt LANGUAGES CXX CUDA)
+project(yolov11_trt LANGUAGES CXX CUDA)
 
 # Set C++ standard to C++17
 set(CMAKE_CXX_STANDARD 17)
@@ -15,79 +15,44 @@ set(TENSORRT_PATH /usr/share/doc/tensorrt-8.5.2.2)
 set(Torch_PATH $ENV{TORCH_PATH})
 set(Torch_DIR "${Torch_PATH}/share/cmake/Torch")
 
-# Allow overriding TensorRT and OpenCV paths via command line
-# e.g., cmake -DTENSORRT_PATH="path/to/TensorRT" -DOpenCV_DIR="path/to/OpenCV" ..
-option(TENSORRT_PATH_OPTION "Path to TensorRT installation" ${TENSORRT_PATH})
-set(TENSORRT_PATH ${TENSORRT_PATH_OPTION} CACHE PATH "Path to TensorRT installation")
-
-# Find TensorRT
+# Find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(rclcpp_components REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(CUDA REQUIRED)
 find_package(TensorRT REQUIRED)
-if(NOT TensorRT_FOUND)
-    message(FATAL_ERROR "TensorRT not found. Please install TensorRT or set TensorRT_DIR.")
-endif()
-
 find_library(NVINFER nvinfer)
 find_library(NVINFER_PLUGIN nvinfer_plugin)
 
-# Find OpenCV
-find_package(OpenCV REQUIRED)
-if(NOT OpenCV_FOUND)
-    message(FATAL_ERROR "OpenCV not found. Please install OpenCV or set OpenCV_DIR.")
-endif()
-
-# Find CUDA
-find_package(CUDA REQUIRED)
-if(NOT CUDA_FOUND)
-    message(FATAL_ERROR "CUDA not found. Please install the CUDA Toolkit.")
-endif()
+set(dependencies
+  rclcpp
+  rclcpp_components
+  OpenCV
+  CUDA
+  TensorRT
+)
 
 if (NOT CUDA_INCLUDE_DIRS)
-  set(CUDA_INCLUDE_DIRS ${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux/include)
+    set(CUDA_INCLUDE_DIRS ${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux/include)
 endif()
 if (NOT CUDA_LIBRARIES)
-  set(CUDA_LIBRARIES ${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux/lib)
+    set(CUDA_LIBRARIES ${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux/lib)
 endif()
 
-# Include directories for dependencies
-include_directories(${TensorRT_INCLUDE_DIRS})
-include_directories(${OpenCV_INCLUDE_DIRS})
-include_directories(${CUDA_INCLUDE_DIRS})
-
-# Include directory for this project
-include_directories(${CMAKE_SOURCE_DIR}/include)
-
-# Define source files (including CUDA sources)
-set(SOURCES
-src/main.cpp
-    src/yolov11.cpp
-    src/preprocess.cu
-)
-
-# Create executable (CMake handles CUDA sources automatically)
-add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
-
-# Define API_EXPORTS macro
-target_compile_definitions(${PROJECT_NAME} PRIVATE API_EXPORTS)
-
-# Specify include directories (modern CMake approach)
-target_include_directories(${PROJECT_NAME} PRIVATE
-    src/
+# Include directories
+include_directories(
+    include
     ${OpenCV_INCLUDE_DIRS}
     ${CUDA_INCLUDE_DIRS}
-    ${TENSORRT_PATH}/include
+    ${TensorRT_INCLUDE_DIRS}
 )
 
-# Link TensorRT libraries
-# Specify full paths to TensorRT libraries to avoid relying on link_directories
-set(TENSORRT_LIBS
-    "${TENSORRT_PATH}/lib/nvinfer.lib"
-    "${TENSORRT_PATH}/lib/nvonnxparser.lib"
-    "${TENSORRT_PATH}/lib/nvparsers.lib"
-    "${TENSORRT_PATH}/lib/nvinfer_plugin.lib"
-)
-
-# Link libraries to the target
-target_link_libraries(${PROJECT_NAME} PRIVATE
+add_library(yolov11_node SHARED src/yolov11.cpp src/preprocess.cu)
+set_target_properties(yolov11_node PROPERTIES COMPILE_DEFINITIONS "COMPOSITION_BUILDING_DLL" CUDA_SEPARABLE_COMPILATION ON)
+ament_target_dependencies(yolov11_node ${dependencies})
+target_link_libraries(yolov11_node
+    ${rclcpp_LIBRARIES}
     ${OpenCV_LIBRARIES}
     ${CUDA_LIBRARIES}
     ${TensorRT_LIBRARIES}
@@ -95,13 +60,18 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     ${NVINFER_PLUGIN}
 )
 
-# Enable separable compilation for CUDA (optional but recommended)
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    CUDA_SEPARABLE_COMPILATION ON
+add_executable(yolov11_exec src/main.cpp)
+target_link_libraries(yolov11_exec PRIVATE yolov11_node ${OpenCV_LIBRARIES})
+
+install(TARGETS 
+    yolov11_node
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    RUNTIME DESTINATION bin
 )
+install(DIRECTORY include/ DESTINATION include)
+ament_export_include_directories(include)
 
-# (Optional) Specify CUDA architectures based on your GPU hardware
-# set(CMAKE_CUDA_ARCHITECTURES 75)  # Example for Turing architecture
-
-# (Optional) Set output directories for binaries
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+ament_export_dependencies(${dependencies})
+ament_export_libraries(${PROJECT_NAME})
+ament_package()
