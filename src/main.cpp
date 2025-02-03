@@ -1,14 +1,9 @@
-﻿#ifdef _WIN32
-#include <windows.h>
-#else
+﻿#include "yolov11-trt/yolov11.h"
+
 #include <sys/stat.h>
 #include <unistd.h>
-#endif
-
 #include <iostream>
 #include <string>
-#include "YOLOv11.h"
-
 
 bool IsPathExist(const string& path) {
 #ifdef _WIN32
@@ -75,7 +70,7 @@ int main(int argc, char** argv)
 
     // Assume it's a folder, add logic to handle folders
     // init model
-    YOLOv11 model(engine_file_path, logger);
+    YOLOv11 model(engine_file_path, logger, 0.5f, 0.5f);
 
     if (isVideo) {
         //path to video
@@ -102,7 +97,7 @@ int main(int argc, char** argv)
             printf("cost %2.4lf ms\n", tc);
 
             imshow("prediction", image);
-            waitKey(1);
+            // waitKey(1);
         }
 
         // Release resources
@@ -136,7 +131,7 @@ int main(int argc, char** argv)
 
             model.draw(image, objects);
 
-            std::string outputImagePath = "output_image.jpg";
+            std::string outputImagePath = "../assets/prediction.jpg";
             cv::imwrite(outputImagePath, image);
         }
     }

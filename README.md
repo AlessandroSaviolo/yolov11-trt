@@ -22,39 +22,47 @@ cd yolov11-trt
 - **For C++**:
   Ensure that OpenCV and TensorRT are installed. Set the correct paths for these libraries in the `CMakeLists.txt` file.
 
-### 3. Build the C++ Code
-
-```bash
-mkdir build && cd build
-cmake ..
-cmake --build . --config Release
-```
-
-### 4. Exporting the Model
-
-On your laptop:
+### 3. Exporting the Model from PYTORCH to ONNX
 
 1. Modify the `scripts/export.py` script if needed to set the desired model name.
 2. Run the Python script to export the YOLOv11 model to ONNX format:
 
 ```bash
-python scripts/export.py
+cd ~/yolov11-trt
+python scripts/export_onnx.py
 ```
 
-### 5. Running Inference
+### 4. Build the C++ Code
 
-On your robot:
+```bash
+cd ~/yolov11-trt
+mkdir build && cd build
+cmake ..
+cmake --build . --config Release
+```
+
+### 5. Exporting the Model from ONNX to TensorRT
+
+Move the generated `yolo11s.onnx` file into the `checkpoints` folder:
+```bash
+cd ~/yolov11-trt
+mkdir checkpoints
+mv yolo11s.onnx checkpoints
+```
 
 Convert the ONNX model to a TensorRT engine:
 
 ```bash
-./yolov11-trt ../resources/yolo11s.onnx ../assets/people.jpg
+cd ~/yolov11-trt/build
+./yolov11-trt ../checkpoints/yolo11s.onnx ../assets/people.jpg
 ```
 
-Perform object detection on an image:
+### 6. Running Inference
+
+Perform object detection on a sample image:
 
 ```bash
-./yolov11-trt ../resources/yolo11s.engine ../assets/people.jpg
+./yolov11-trt ../checkpoints/yolo11s.engine ../assets/people.jpg
 ```
 
 ## Acknowledgement
