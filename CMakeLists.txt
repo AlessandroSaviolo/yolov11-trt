@@ -1,9 +1,11 @@
-﻿cmake_minimum_required(VERSION 3.18)
-
-# Project declaration with C++ and CUDA support
+﻿cmake_minimum_required(VERSION 3.6)
 project(yolov11_trt LANGUAGES CXX CUDA)
 
-# Set C++ standard to C++17
+cmake_policy(SET CMP0057 NEW)
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo)
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -11,11 +13,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set(CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda-11.4)
-set(TENSORRT_PATH /usr/share/doc/tensorrt-8.5.2.2)
-set(Torch_PATH $ENV{TORCH_PATH})
-set(Torch_DIR "${Torch_PATH}/share/cmake/Torch")
+set(TensorRT_DIR /usr/share/doc/tensorrt-8.5.2.2)
 
-# Find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
@@ -40,7 +39,6 @@ if (NOT CUDA_LIBRARIES)
     set(CUDA_LIBRARIES ${CUDA_TOOLKIT_ROOT_DIR}/targets/aarch64-linux/lib)
 endif()
 
-# Include directories
 include_directories(
     include
     ${OpenCV_INCLUDE_DIRS}
@@ -59,6 +57,7 @@ target_link_libraries(yolov11_node
     ${NVINFER}
     ${NVINFER_PLUGIN}
 )
+ament_export_dependencies(${dependencies})
 
 add_executable(yolov11_exec src/main.cpp)
 target_link_libraries(yolov11_exec PRIVATE yolov11_node ${OpenCV_LIBRARIES})
@@ -69,9 +68,8 @@ install(TARGETS
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION bin
 )
-install(DIRECTORY include/ DESTINATION include)
-ament_export_include_directories(include)
+install(DIRECTORY include/ DESTINATION share/${PROJECT_NAME}/include/)
 
-ament_export_dependencies(${dependencies})
+ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
 ament_package()
