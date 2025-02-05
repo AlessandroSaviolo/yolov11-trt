@@ -1,5 +1,5 @@
-#include "yolov11-trt/preprocess.h"
-#include "yolov11-trt/cuda_utils.h"
+#include "yolov11_trt/preprocess.h"
+#include "yolov11_trt/cuda_utils.h"
 
 #include "device_launch_parameters.h"
 

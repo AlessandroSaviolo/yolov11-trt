@@ -6,7 +6,8 @@
  * perform object detection using a YOLOv11 model with TensorRT.
  */
 
-#pragma once
+#ifndef YOLOV11_H
+#define YOLOV11_H
 
 #include "NvInfer.h"
 #include <opencv2/opencv.hpp>
@@ -139,3 +140,5 @@ private:
      */
     bool saveEngine(const std::string& filename);
 };
+
+#endif // YOLOV11_H

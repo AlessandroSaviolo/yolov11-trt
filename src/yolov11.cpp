@@ -1,9 +1,9 @@
-#include "yolov11-trt/yolov11.h"    // Header file for YOLOv11 class
-#include "yolov11-trt/logging.h"    // Logging utilities
-#include "yolov11-trt/cuda_utils.h" // CUDA utility functions
-#include "yolov11-trt/macros.h"     // Common macros
-#include "yolov11-trt/preprocess.h" // Preprocessing functions
-#include "yolov11-trt/common.h"     // Common definitions and utilities
+#include "yolov11_trt/yolov11.hpp"  // Header file for YOLOv11 class
+#include "yolov11_trt/logging.h"    // Logging utilities
+#include "yolov11_trt/cuda_utils.h" // CUDA utility functions
+#include "yolov11_trt/macros.h"     // Common macros
+#include "yolov11_trt/preprocess.h" // Preprocessing functions
+#include "yolov11_trt/common.h"     // Common definitions and utilities
 
 #include <NvOnnxParser.h>               // NVIDIA ONNX parser for TensorRT
 #include <fstream>                      // File stream operations

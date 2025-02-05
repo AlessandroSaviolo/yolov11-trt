@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>yolov11_trt</name>
+  <version>0.0.1</version>
+  <description>YOLO v11 TensorRT</description>
+  <maintainer email="alessandro.saviolo@nyu.edu">Alessandro Saviolo</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>rclcpp_components</depend>
+  <depend>OpenCV</depend>
+  <depend>CUDA</depend>
+  <depend>TensorRT</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
