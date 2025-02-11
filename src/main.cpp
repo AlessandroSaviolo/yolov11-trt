@@ -72,68 +72,35 @@ int main(int argc, char** argv)
     // init model
     YOLOv11 model(engine_file_path, logger, 0.5f, 0.5f);
 
-    if (isVideo) {
-        //path to video
-        cv::VideoCapture cap(path);
-
-        while (1)
+    // Path to folder saves images
+    for (const auto& imagePath : imagePathList)
+    {
+        // Open image
+        Mat image = imread(imagePath);
+        if (image.empty())
         {
-            Mat image;
-            cap >> image;
-
-            if (image.empty()) break;
-
-            vector<Detection> objects;
-            model.preprocess(image);
-
-            auto start = std::chrono::system_clock::now();
-            model.infer();
-            auto end = std::chrono::system_clock::now();
-
-            model.postprocess(objects);
-            model.draw(image, objects);
-
-            auto tc = (double)std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000.;
-            printf("cost %2.4lf ms\n", tc);
-
-            imshow("prediction", image);
-            // waitKey(1);
+            cerr << "Error reading image: " << imagePath << endl;
+            continue;
         }
 
-        // Release resources
-        destroyAllWindows();
-        cap.release();
-    }
-    else {
-        // path to folder saves images
-        for (const auto& imagePath : imagePathList)
-        {
-            // open image
-            Mat image = imread(imagePath);
-            if (image.empty())
-            {
-                cerr << "Error reading image: " << imagePath << endl;
-                continue;
-            }
+        // Resize to desired size
+        cv::resize(image, image, cv::Size(640, 640));
 
-            vector<Detection> objects;
-            model.preprocess(image);
+        model.preprocess(image);
 
-            auto start = std::chrono::system_clock::now();
-            model.infer();
-            auto end = std::chrono::system_clock::now();
+        auto start = std::chrono::system_clock::now();
+        model.infer();
+        auto end = std::chrono::system_clock::now();
+        
+        auto tc = (double)std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000.;
+        printf("Inference time: %2.4lf ms\n", tc);
 
-            model.postprocess(objects);
-            model.draw(image, objects);
+        vector<Detection> objects;
+        model.postprocess(objects);
+        model.draw(image, objects);
 
-            auto tc = (double)std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000.;
-            printf("cost %2.4lf ms\n", tc);
-
-            model.draw(image, objects);
-
-            std::string outputImagePath = "../assets/prediction.jpg";
-            cv::imwrite(outputImagePath, image);
-        }
+        std::string outputImagePath = "../assets/prediction.jpg";
+        cv::imwrite(outputImagePath, image);
     }
 
     return 0;

@@ -1,3 +1,4 @@
-resources/*.engine
-resources/*.trt
+resources/
+checkpoints/
 build/
+assets/prediction.jpg

@@ -274,7 +274,7 @@ void YOLOv11::postprocess(vector<Detection>& output, Point& target_coord, Mat& i
                 const float ow = det_output.at<float>(2, i);
                 const float oh = det_output.at<float>(3, i);
                 Rect box;
-                
+
                 // Calculate top-left corner of the bounding box
                 box.x = static_cast<int>((cx - 0.5 * ow));
                 box.y = static_cast<int>((cy - 0.5 * oh));
@@ -435,44 +435,93 @@ void YOLOv11::draw(const vector<Detection>& output, Point& target_coord, Mat& im
 // Build the TensorRT engine from an ONNX model
 void YOLOv11::build(std::string onnxPath, nvinfer1::ILogger& logger)
 {
+    std::cout << "Building the TensorRT engine from the ONNX model" << std::endl << std::flush;
+
     // Create a TensorRT builder
+    std::cout << "Creating TensorRT builder..." << std::endl << std::flush;
     auto builder = createInferBuilder(logger);
+    std::cout << "TensorRT builder created." << std::endl << std::flush;
 
     // Define network flags for explicit batch dimensions
+    std::cout << "Setting network flags..." << std::endl << std::flush;
     const auto explicitBatch = 1U << static_cast<uint32_t>(NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
 
     // Create a network definition with explicit batch
+    std::cout << "Creating network definition..." << std::endl << std::flush;
     INetworkDefinition* network = builder->createNetworkV2(explicitBatch);
+    std::cout << "Network definition created." << std::endl << std::flush;
 
     // Create builder configuration
+    std::cout << "Creating builder configuration..." << std::endl << std::flush;
     IBuilderConfig* config = builder->createBuilderConfig();
+    std::cout << "Builder configuration created." << std::endl << std::flush;
 
     // Enable FP16 precision if specified
     if (isFP16)
     {
+        std::cout << "Enabling FP16 precision..." << std::endl << std::flush;
         config->setFlag(BuilderFlag::kFP16);
+        std::cout << "FP16 precision enabled." << std::endl << std::flush;
     }
+
     // Create an ONNX parser
+    std::cout << "Creating ONNX parser..." << std::endl << std::flush;
     nvonnxparser::IParser* parser = nvonnxparser::createParser(*network, logger);
+    std::cout << "ONNX parser created." << std::endl << std::flush;
+
     // Parse the ONNX model file
+    std::cout << "Parsing ONNX model file: " << onnxPath << std::endl << std::flush;
     bool parsed = parser->parseFromFile(onnxPath.c_str(), static_cast<int>(nvinfer1::ILogger::Severity::kINFO));
+    if (!parsed) {
+        std::cerr << "Failed to parse ONNX model." << std::endl << std::flush;
+    } else {
+        std::cout << "Successfully parsed ONNX model." << std::endl << std::flush;
+    }
+
+    // Retrieve input shape
+    auto inputDims = network->getInput(0)->getDimensions();
+    std::cout << "Parsed ONNX Model Input Shape: " 
+              << inputDims.d[2] << "x" << inputDims.d[3] << std::endl << std::flush;
+
     // Build the serialized network plan
+    std::cout << "Building serialized network..." << std::endl << std::flush;
     IHostMemory* plan{ builder->buildSerializedNetwork(*network, *config) };
+    if (!plan) {
+        std::cerr << "Failed to build serialized network." << std::endl << std::flush;
+    } else {
+        std::cout << "Serialized network built successfully." << std::endl << std::flush;
+    }
 
     // Create a TensorRT runtime
+    std::cout << "Creating TensorRT runtime..." << std::endl << std::flush;
     runtime = createInferRuntime(logger);
+    std::cout << "TensorRT runtime created." << std::endl << std::flush;
 
     // Deserialize the CUDA engine from the serialized plan
+    std::cout << "Deserializing CUDA engine..." << std::endl << std::flush;
     engine = runtime->deserializeCudaEngine(plan->data(), plan->size());
+    if (!engine) {
+        std::cerr << "Failed to deserialize CUDA engine." << std::endl << std::flush;
+    } else {
+        std::cout << "CUDA engine deserialized successfully." << std::endl << std::flush;
+    }
 
     // Create an execution context for the engine
+    std::cout << "Creating execution context..." << std::endl << std::flush;
     context = engine->createExecutionContext();
+    if (!context) {
+        std::cerr << "Failed to create execution context." << std::endl << std::flush;
+    } else {
+        std::cout << "Execution context created successfully." << std::endl << std::flush;
+    }
 
     // Clean up allocated resources
+    std::cout << "Cleaning up resources..." << std::endl << std::flush;
     delete network;
     delete config;
     delete parser;
     delete plan;
+    std::cout << "Cleanup complete." << std::endl << std::flush;
 }
 
 // Save the serialized TensorRT engine to a file

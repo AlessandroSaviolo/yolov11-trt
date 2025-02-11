@@ -202,7 +202,7 @@ void cuda_preprocess(
         128,                         // Constant value for out-of-bounds (gray)
         d2s,                         // Destination to source affine matrix
         jobs                         // Total number of pixels
-        );
+    );
 
     // Optionally, you might want to check for kernel launch errors
     CUDA_CHECK(cudaGetLastError());
