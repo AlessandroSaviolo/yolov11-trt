@@ -54,7 +54,7 @@ Convert the ONNX model to a TensorRT engine:
 
 ```bash
 cd ~/yolov11_trt/build
-./yolov11_exec ../checkpoints/yolo11s.onnx ../assets/people.jpg
+./yolov11_trt ../checkpoints/yolo11s.onnx ../assets/people.jpg
 ```
 
 ### 6. Running Inference
@@ -62,7 +62,7 @@ cd ~/yolov11_trt/build
 Perform object detection on a sample image:
 
 ```bash
-./yolov11_exec ../checkpoints/yolo11s.engine ../assets/people.jpg
+./yolov11_trt ../checkpoints/yolo11s.engine ../assets/people.jpg
 ```
 
 ## Acknowledgement
